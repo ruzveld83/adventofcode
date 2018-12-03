@@ -7,7 +7,7 @@ import scala.io.Source
   */
 object Day3 {
 
-  case class Claim(x: Int, y: Int, w: Int, h: Int)
+  case class Claim(id: Int, x: Int, y: Int, w: Int, h: Int)
 
   class Fabric(w: Int, h: Int) {
 
@@ -27,13 +27,19 @@ object Day3 {
 
     def countOverlaps: Int =
       squares.map(_.count(_ > 1)).sum
+
+    def isClaimOverlapped(claim: Claim): Boolean = {
+      squares.slice(claim.y, claim.y + claim.h).exists(
+        _.slice(claim.x, claim.x + claim.w).exists(_ > 1))
+    }
   }
 
   def main(args: Array[String]): Unit = {
-    val regex = """#\d+ @ (\d+),(\d+): (\d+)x(\d+)""".r("x", "y", "w", "h")
+    val regex = """#(\d+) @ (\d+),(\d+): (\d+)x(\d+)""".r("id", "x", "y", "w", "h")
     val claims = Source.fromFile("input/day3.txt").getLines().map { line =>
       val matched = regex.findFirstMatchIn(line).get
       Claim(
+        matched.group("id").toInt,
         matched.group("x").toInt,
         matched.group("y").toInt,
         matched.group("w").toInt,
@@ -46,5 +52,7 @@ object Day3 {
     val fabric = new Fabric(fabricWidth, fabricHeight)
     claims.foreach(fabric.applyClaim)
     println(fabric.countOverlaps)
+    val unoverlapped = claims.find(!fabric.isClaimOverlapped(_)).map(_.id)
+    println(unoverlapped)
   }
 }
